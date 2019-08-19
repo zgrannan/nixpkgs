@@ -55,7 +55,6 @@ in
       sockets.u9fs = {
         description = "U9fs Listening Socket";
         wantedBy = [ "sockets.target" ];
-        after = [ "network.target" ];
         inherit (cfg) listenStreams;
         socketConfig.Accept = "yes";
       };
