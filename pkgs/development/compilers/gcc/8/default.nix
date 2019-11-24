@@ -163,8 +163,6 @@ stdenv.mkDerivation ({
 
   depsTargetTarget = optional (!crossStageStatic && threadsCross != null) threadsCross;
 
-  env.NIX_LDFLAGS = stdenv.lib.optionalString  hostPlatform.isSunOS "-lm -ldl";
-
   preConfigure = import ../common/pre-configure.nix {
     inherit (stdenv) lib;
     inherit version hostPlatform langGo;
@@ -206,7 +204,6 @@ stdenv.mkDerivation ({
 
   dontStrip = !stripped;
 
-<<<<<<< HEAD
   installTargets = optional stripped "install-strip";
 
   env = {
@@ -223,56 +220,19 @@ stdenv.mkDerivation ({
     CPATH =  makeSearchPathOutput "dev" "include" (optional (zlib != null) zlib);
     LIBRARY_PATH = makeLibraryPath (optional (zlib != null) zlib);
   } // optionalAttrs (targetPlatform != hostPlatform && libcCross != null) {
-    EXTRA_TARGET_FLAGS =
-      "-idirafter ${getDev libcCross}${libcCross.incdir or "/include"}"
-      + optionalString (!crossStageStatic)
-        " -B${libcCross.out}${libcCross.libdir or "/lib"}";
-    EXTRA_TARGET_LDFLAGS =
-      "-Wl,-L${libcCross.out}${libcCross.libdir or "/lib"}"
-      + (if crossStageStatic then
-          "-B${libcCross.out}${libcCross.libdir or "/lib"}"
-        else
-          "-Wl,-rpath,${libcCross.out}${libcCross.libdir or "/lib"}" +
-          " -Wl,-rpath-link,${libcCross.out}${libcCross.libdir or "/lib"}"
-      );
-=======
-  installTargets =
-    if stripped
-    then "install-strip"
-    else "install";
-
-  # https://gcc.gnu.org/install/specific.html#x86-64-x-solaris210
-  ${if hostPlatform.system == "x86_64-solaris" then "CC" else null} = "gcc -m64";
-
-  # Setting $CPATH and $LIBRARY_PATH to make sure both `gcc' and `xgcc' find the
-  # library headers and binaries, regarless of the language being compiled.
-  #
-  # Likewise, the LTO code doesn't find zlib.
-  #
-  # Cross-compiling, we need gcc not to read ./specs in order to build the g++
-  # compiler (after the specs for the cross-gcc are created). Having
-  # LIBRARY_PATH= makes gcc read the specs from ., and the build breaks.
-
-  CPATH = optionals (targetPlatform == hostPlatform) (makeSearchPathOutput "dev" "include" ([]
-    ++ optional (zlib != null) zlib
-  ));
-
-  LIBRARY_PATH = optionals (targetPlatform == hostPlatform) (makeLibraryPath (optional (zlib != null) zlib));
-
-  inherit
-    (import ../common/extra-target-flags.nix {
-      inherit stdenv crossStageStatic libcCross threadsCross;
-    })
-    EXTRA_TARGET_FLAGS
-    EXTRA_TARGET_LDFLAGS
-    ;
+    inherit
+      (import ../common/extra-target-flags.nix {
+        inherit stdenv crossStageStatic libcCross threadsCross;
+      })
+      EXTRA_TARGET_FLAGS
+      EXTRA_TARGET_LDFLAGS
+      ;
   } // optionalAttrs (hostPlatform.system == "x86_64-solaris") {
     # https://gcc.gnu.org/install/specific.html#x86-64-x-solaris210
     CC = "gcc -m64";
   } // optionalAttrs hostPlatform.isSunOS {
     NIX_LDFLAGS = "-lm -ldl";
   };
->>>>>>> channels/nixos-unstable-small
 
   passthru = {
     inherit langC langCC langObjC langObjCpp langFortran langGo version;
