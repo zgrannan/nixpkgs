@@ -82,7 +82,6 @@ stdenv.mkDerivation ({
 
   outputs = [ "out" "lib" "man" "info" ];
   setOutputFlags = false;
-  env.NIX_NO_SELF_RPATH = true;
 
   libc_dev = stdenv.cc.libc_dev;
 
@@ -163,8 +162,6 @@ stdenv.mkDerivation ({
 
   depsTargetTarget = optional (!crossStageStatic && threadsCross != null) threadsCross;
 
-  env.NIX_LDFLAGS = stdenv.lib.optionalString  hostPlatform.isSunOS "-lm -ldl";
-
   preConfigure = import ../common/pre-configure.nix {
     inherit (stdenv) lib;
     inherit version hostPlatform langGo;
@@ -208,9 +205,6 @@ stdenv.mkDerivation ({
 
   installTargets = optional stripped "install-strip";
 
-  # https://gcc.gnu.org/install/specific.html#x86-64-x-solaris210
-  ${if hostPlatform.system == "x86_64-solaris" then "CC" else null} = "gcc -m64";
-
   # Setting $CPATH and $LIBRARY_PATH to make sure both `gcc' and `xgcc' find the
   # library headers and binaries, regarless of the language being compiled.
   #
@@ -224,9 +218,11 @@ stdenv.mkDerivation ({
     CPATH = toString (optionals (targetPlatform == hostPlatform) (makeSearchPathOutput "dev" "include" ([]
       ++ optional (zlib != null) zlib
     )));
-  
-    LIBRARY_PATH = optional (targetPlatform == hostPlatform) (makeLibraryPath (optional (zlib != null) zlib));
-  
+
+    LIBRARY_PATH = optionalString (targetPlatform == hostPlatform) (makeLibraryPath (optional (zlib != null) zlib));
+
+    NIX_NO_SELF_RPATH = true;
+
     inherit
       (import ../common/extra-target-flags.nix {
         inherit stdenv crossStageStatic libcCross threadsCross;
@@ -234,6 +230,11 @@ stdenv.mkDerivation ({
       EXTRA_TARGET_FLAGS
       EXTRA_TARGET_LDFLAGS
       ;
+  } // optionalAttrs hostPlatform.isSunOS {
+    NIX_LDFLAGS =  "-lm -ldl";
+  } // optionalAttrs (hostPlatform.system == "x86_64-solaris") {
+    # https://gcc.gnu.org/install/specific.html#x86-64-x-solaris210
+    CC = "gcc -m64";
   };
 
   passthru = {

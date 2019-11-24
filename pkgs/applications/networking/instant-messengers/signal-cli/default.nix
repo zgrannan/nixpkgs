@@ -10,7 +10,7 @@ stdenv.mkDerivation rec {
     sha256 = "1gvdifscyxmxn2dwlkqi684ahy5kbcj84mqda0m8l4aa8iaq1d59";
   };
 
-  buildInputs = lib.optional stdenv.isLinux [ libmatthew_java dbus dbus_java ];
+  buildInputs = lib.optionals stdenv.isLinux [ libmatthew_java dbus dbus_java ];
   nativeBuildInputs = [ makeWrapper ];
 
   installPhase = ''

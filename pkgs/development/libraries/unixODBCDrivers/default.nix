@@ -54,9 +54,6 @@
       # on darwin this defaults to ON but we want to build against unixODBC
       "-DWITH_IODBC=OFF"
     ];
-    ];
-
-    env.NIX_CFLAGS_COMPILE = "-I${libmysqlclient}/include/mysql -L${libmysqlclient}/lib/mysql";
 
     passthru = {
       fancyName = "MariaDB";
