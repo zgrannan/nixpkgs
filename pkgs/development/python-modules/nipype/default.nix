@@ -74,7 +74,7 @@ buildPythonPackage rec {
     simplejson
     traits
     xvfbwrapper
-  ] ++ stdenv.lib.optional (!isPy3k) [
+  ] ++ stdenv.lib.optionals (!isPy3k) [
     configparser
     futures
   ];
